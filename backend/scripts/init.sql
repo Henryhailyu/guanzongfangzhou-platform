@@ -1,0 +1,1 @@
+-- 初始化由 SQLAlchemy create_all 处理；此文件预留扩展索引

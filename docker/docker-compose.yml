@@ -1,0 +1,45 @@
+services:
+  nginx:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - ai-service
+    networks:
+      - guanlian
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/flask/Dockerfile
+    env_file:
+      - ../.env
+    volumes:
+      - ../backend:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_started
+    networks:
+      - guanlian
+
+  ai-service:
+    build:
+      context: ..
+      dockerfile: docker/fastapi/Dockerfile
+    env_file:
+      - ../.env
+    volumes:
+      - ../ai-service:/app
+    networks:
+      - guanlian
+
+networks:
+  guanlian:
+    driver: bridge

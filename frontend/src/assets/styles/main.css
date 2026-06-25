@@ -1,0 +1,75 @@
+:root {
+  --color-primary: #4f6ef7;
+  --color-primary-hover: #3b54d4;
+  --color-primary-light: #eef1fe;
+  --color-bg: #ffffff;
+  --color-surface: #f7f8fa;
+  --color-border: #e8eaed;
+  --color-text-main: #1a1a2e;
+  --color-text-muted: #6b7280;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: var(--color-text-main);
+  background: var(--color-surface);
+  line-height: 1.7;
+}
+a { color: var(--color-primary); text-decoration: none; }
+.card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* 三端 Dashboard 紧凑指标卡片 */
+.compact-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+.compact-stat-card {
+  padding: 20px;
+}
+.compact-stat-card .stat-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: var(--color-text-main);
+}
+.compact-stat-card .stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+.compact-stat-card .stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+.compact-stat-card .stat-row strong {
+  color: var(--color-text-main);
+  font-weight: 600;
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary:hover { background: var(--color-primary-hover); }
