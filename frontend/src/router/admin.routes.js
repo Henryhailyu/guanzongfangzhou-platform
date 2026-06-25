@@ -11,6 +11,9 @@ export default [
       { path: 'teachers', name: 'AdminTeachers', component: () => import('../views/admin/Teachers.vue') },
       { path: 'courses', name: 'AdminCourses', component: () => import('../views/admin/Courses.vue') },
       { path: 'orders', name: 'AdminOrders', component: () => import('../views/admin/Orders.vue') },
+      { path: 'questions', name: 'AdminQuestions', component: () => import('../views/admin/Questions.vue') },
+      { path: 'analytics', name: 'AdminAnalytics', component: () => import('../views/admin/Analytics.vue') },
+      { path: 'settings', name: 'AdminSettings', component: () => import('../views/admin/Settings.vue') },
     ],
   },
 ]

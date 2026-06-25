@@ -7,6 +7,9 @@
       <router-link to="/admin/teachers">教师审核</router-link>
       <router-link to="/admin/courses">课程管理</router-link>
       <router-link to="/admin/orders">订单管理</router-link>
+      <router-link to="/admin/questions">题库管理</router-link>
+      <router-link to="/admin/analytics">数据分析</router-link>
+      <router-link to="/admin/settings">系统设置</router-link>
       <a href="#" class="logout" @click.prevent="logout">退出</a>
     </aside>
     <main class="content"><router-view /></main>

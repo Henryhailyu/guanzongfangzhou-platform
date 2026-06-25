@@ -7,6 +7,7 @@ from sqlalchemy import func
 from extensions import db
 from models import PointTransaction, User
 from services.points_service import PointsService
+from services.settings_service import get_int
 from utils.response import error, success
 
 points_bp = Blueprint("points", __name__, url_prefix="/api/points")
@@ -38,7 +39,6 @@ def _tx_item(t):
 
 @points_bp.get("/rules")
 def rules():
-    cfg = current_app.config
     return success(
         {
             "earn": [
@@ -53,17 +53,27 @@ def rules():
                 {
                     "key": "answer_after_quota",
                     "label": "免费额度用尽后继续刷题",
-                    "points": cfg["POINTS_PER_QUESTION_AFTER_QUOTA"],
+                    "points": get_int("points_per_question_after_quota", 5),
                     "enabled": True,
                 },
-                {"key": "ai_video_analysis", "label": "AI 视频解析", "points": 10, "enabled": False},
-                {"key": "ai_writing", "label": "AI 写作批改", "points": 50, "enabled": False},
+                {
+                    "key": "ai_video_analysis",
+                    "label": "AI 视频解析",
+                    "points": get_int("ai_video_analysis_points", 10),
+                    "enabled": False,
+                },
+                {
+                    "key": "ai_writing",
+                    "label": "AI 写作批改",
+                    "points": get_int("ai_writing_points", 50),
+                    "enabled": False,
+                },
                 {"key": "mock_paper", "label": "解锁真题模拟卷", "points": 100, "enabled": False},
             ],
             "quota": {
-                "free_daily_questions": cfg["FREE_DAILY_QUESTIONS"],
-                "wrong_penalty": cfg["WRONG_QUOTA_PENALTY"],
-                "max_wrong_before_quota": cfg["MAX_WRONG_BEFORE_QUOTA"],
+                "free_daily_questions": get_int("free_daily_questions", 20),
+                "wrong_penalty": get_int("wrong_quota_penalty", 5),
+                "max_wrong_before_quota": get_int("max_wrong_before_quota", 5),
                 "description": "免费用户每日可刷题上限；答错累计达 5 道将提前用尽当日免费额度。",
             },
         }

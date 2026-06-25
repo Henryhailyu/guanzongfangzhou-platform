@@ -249,3 +249,13 @@ class ReferralLink(db.Model):
     click_count = db.Column(db.Integer, default=0)
     convert_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class SystemSetting(db.Model):
+    __tablename__ = "system_settings"
+
+    key = db.Column(db.String(100), primary_key=True)
+    value = db.Column(db.String(500), nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )

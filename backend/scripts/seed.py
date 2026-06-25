@@ -278,6 +278,9 @@ def run_seed(app):
 
         db.session.commit()
 
+        from services.settings_service import ensure_defaults
+        ensure_defaults()
+
         col = app.mongo_db.questions
         inserted = 0
         for q in SAMPLE_QUESTIONS:

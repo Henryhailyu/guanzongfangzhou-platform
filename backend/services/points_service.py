@@ -4,6 +4,7 @@ from flask import current_app
 
 from extensions import db
 from models import DailyQuota, PointTransaction, WrongQuestion
+from services.settings_service import get_int
 
 
 class PointsService:
@@ -55,6 +56,8 @@ class PointsService:
         cfg = current_app.config
         points_cost = 0
         points_earned = 0
+        max_wrong = get_int("max_wrong_before_quota", cfg.get("MAX_WRONG_BEFORE_QUOTA", 5))
+        points_after_quota = get_int("points_per_question_after_quota", cfg.get("POINTS_PER_QUESTION_AFTER_QUOTA", 5))
 
         if PointsService.is_vip(user):
             if is_correct:
@@ -66,19 +69,19 @@ class PointsService:
             quota.free_done += 1
 
             if quota.quota_used:
-                points_cost = cfg["POINTS_PER_QUESTION_AFTER_QUOTA"]
+                points_cost = points_after_quota
                 if user.points < points_cost:
                     return {
                         "ok": False,
                         "code": "INSUFFICIENT_POINTS",
-                        "message": "今日免费额度已用尽，积分不足（每题需 5 积分）",
+                        "message": f"今日免费额度已用尽，积分不足（每题需 {points_cost} 积分）",
                     }
                 PointsService.deduct_points(
                     user, points_cost, "answer_after_quota", "超额刷题消耗"
                 )
             elif not is_correct:
                 quota.wrong_count += 1
-                if quota.wrong_count >= cfg["MAX_WRONG_BEFORE_QUOTA"]:
+                if quota.wrong_count >= max_wrong:
                     quota.quota_used = True
             if is_correct:
                 points_earned = 3
