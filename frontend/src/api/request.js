@@ -19,7 +19,10 @@ request.interceptors.response.use(
     }
     return data
   },
-  (err) => Promise.reject(err)
+  (err) => {
+    const msg = err.response?.data?.error?.message || err.message || '请求失败'
+    return Promise.reject(new Error(msg))
+  }
 )
 
 export default request

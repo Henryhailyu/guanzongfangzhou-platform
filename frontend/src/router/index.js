@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
 import studentRoutes from './student.routes'
 import teacherRoutes from './teacher.routes'
@@ -35,6 +36,9 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.meta.roles && auth.isLoggedIn && !to.meta.roles.includes(auth.role)) {
+    const roleLabels = { student: '学生', teacher: '教师', admin: '管理员' }
+    const need = to.meta.roles.map((r) => roleLabels[r] || r).join('/')
+    ElMessage.warning(`当前为${roleLabels[auth.role] || auth.role}账号，无法访问${need}页面，请先退出再登录对应账号`)
     if (auth.role === 'teacher') return next('/teacher')
     if (auth.role === 'admin') return next('/admin')
     return next('/dashboard')
