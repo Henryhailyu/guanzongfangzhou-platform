@@ -2,7 +2,7 @@ import secrets
 
 from flask import Blueprint, request
 
-from sqlalchemy import func
+from sqlalchemy import and_, func
 
 from extensions import db
 from models import (
@@ -188,6 +188,34 @@ def my_students(user, profile):
                 "enrolled_at": e.enrolled_at.isoformat() if e.enrolled_at else None,
             }
         )
+    return success(items)
+
+
+@teacher_bp.get("/orders")
+@approved_teacher_required
+def teacher_orders(user, profile):
+    from services.order_service import order_to_dict
+
+    orders = (
+        db.session.query(Order)
+        .join(Course, and_(Order.product_id == Course.id, Order.product_type == "course"))
+        .filter(Course.teacher_id == user.id)
+        .order_by(Order.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    commission_rate = float(profile.commission_rate or 0.7)
+    items = []
+    for o in orders:
+        d = order_to_dict(o, include_user=True)
+        if o.status == "paid":
+            amount = float(o.amount or 0)
+            d["teacher_income"] = round(amount * commission_rate, 2)
+            d["platform_fee"] = round(amount * (1 - commission_rate), 2)
+        else:
+            d["teacher_income"] = 0
+            d["platform_fee"] = 0
+        items.append(d)
     return success(items)
 
 

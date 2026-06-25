@@ -22,6 +22,8 @@ export default [
       { path: 'wrong-book', name: 'WrongBook', meta: { requiresAuth: true, roles: ['student'] }, component: () => import('../views/student/WrongBook.vue') },
       { path: 'teachers/:slug', name: 'TeacherPage', component: () => import('../views/student/TeacherPage.vue') },
       { path: 'profile', name: 'Profile', meta: { requiresAuth: true, roles: ['student'] }, component: () => import('../views/student/Profile.vue') },
+      { path: 'orders', name: 'Orders', meta: { requiresAuth: true, roles: ['student'] }, component: () => import('../views/student/Orders.vue') },
+      { path: 'orders/:id', name: 'OrderDetail', meta: { requiresAuth: true, roles: ['student'] }, component: () => import('../views/student/OrderDetail.vue') },
     ],
   },
 ]

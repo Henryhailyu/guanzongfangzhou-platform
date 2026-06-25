@@ -43,8 +43,19 @@
       show-icon
       class="quota-alert"
       title="今日免费刷题额度已用尽"
-      description="继续刷题将每题消耗 5 积分。积分不足时请明日再来或购买积分包（即将上线）。"
+      description="继续刷题将每题消耗 5 积分。积分不足时请明日再来，或下方购买积分包。"
     />
+
+    <div class="packs-section">
+      <h3>购买积分包</h3>
+      <div class="compact-stat-grid">
+        <div v-for="pack in packs" :key="pack.id" class="card compact-stat-card pack-card">
+          <div class="stat-title">{{ pack.name }}</div>
+          <div class="stat-value">¥{{ pack.price }}</div>
+          <el-button type="primary" size="small" style="margin-top:12px" @click="buyPack(pack)">购买</el-button>
+        </div>
+      </div>
+    </div>
 
     <div class="rules-section">
       <h3>积分规则</h3>
@@ -100,6 +111,18 @@
         @current-change="loadTransactions"
       />
     </div>
+
+    <CheckoutDialog
+      :visible="checkoutVisible"
+      product-type="points_pack"
+      :product-id="checkoutPack?.id"
+      :product-title="checkoutPack?.name"
+      :amount="checkoutPack?.price || 0"
+      :points-granted="checkoutPack?.points || 0"
+      title="购买积分包"
+      @close="checkoutVisible = false"
+      @success="onPackPaid"
+    />
   </div>
 </template>
 
@@ -107,14 +130,18 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '../../api/request'
+import CheckoutDialog from '../../components/CheckoutDialog.vue'
 
 const overview = ref({ points: 0, level: '', quota: {}, checked_in_today: false })
 const rules = ref({ earn: [], spend: [], quota: null })
 const transactions = ref([])
+const packs = ref([])
 const page = ref(1)
 const pageSize = 20
 const total = ref(0)
 const checkingIn = ref(false)
+const checkoutVisible = ref(false)
+const checkoutPack = ref(null)
 
 const formatTime = (iso) => {
   if (!iso) return '—'
@@ -151,8 +178,23 @@ const checkin = async () => {
   }
 }
 
+const loadPacks = async () => {
+  packs.value = (await request.get('/orders/points-packs')).data
+}
+
+const buyPack = (pack) => {
+  checkoutPack.value = pack
+  checkoutVisible.value = true
+}
+
+const onPackPaid = async () => {
+  checkoutVisible.value = false
+  await Promise.all([loadOverview(), loadTransactions()])
+  ElMessage.success('积分已到账')
+}
+
 onMounted(async () => {
-  await Promise.all([loadOverview(), loadRules(), loadTransactions()])
+  await Promise.all([loadOverview(), loadRules(), loadTransactions(), loadPacks()])
 })
 </script>
 
@@ -161,8 +203,9 @@ onMounted(async () => {
 .level-tag { font-size: 12px; color: var(--color-primary); margin-top: 8px; }
 .stat-sub { font-size: 12px; color: var(--color-text-muted); margin-top: 6px; }
 .quota-alert { margin-top: 20px; }
-.rules-section, .history-section { margin-top: 32px; }
-.rules-section h3, .history-section h3 { font-size: 18px; margin: 0 0 16px; }
+.rules-section, .history-section, .packs-section { margin-top: 32px; }
+.rules-section h3, .history-section h3, .packs-section h3 { font-size: 18px; margin: 0 0 16px; }
+.pack-card { text-align: center; }
 .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .rules-card { padding: 20px; }
 .rules-card h4 { margin: 0 0 12px; font-size: 15px; }

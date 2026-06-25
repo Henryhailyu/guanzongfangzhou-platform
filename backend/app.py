@@ -13,7 +13,7 @@ from extensions import db, jwt
 from routes.admin import admin_bp
 from routes.auth import auth_bp
 from routes.courses import courses_bp, wrong_book_bp
-from routes.marketing import marketing_bp, orders_bp
+from routes.marketing import marketing_bp, orders_bp, webhooks_bp
 from routes.points import points_bp
 from routes.questions import questions_bp
 from routes.learning import learning_bp
@@ -38,6 +38,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(marketing_bp)
     app.register_blueprint(orders_bp)
+    app.register_blueprint(webhooks_bp)
 
     @app.get("/api/health")
     def health():

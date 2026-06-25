@@ -121,17 +121,6 @@ def set_course_status(user, course_id):
 @role_required("admin")
 def list_orders(user):
     orders = Order.query.order_by(Order.created_at.desc()).limit(100).all()
-    return success(
-        [
-            {
-                "id": o.id,
-                "order_no": o.order_no,
-                "user_id": o.user_id,
-                "product_type": o.product_type,
-                "amount": float(o.amount or 0),
-                "status": o.status,
-                "created_at": o.created_at.isoformat() if o.created_at else None,
-            }
-            for o in orders
-        ]
-    )
+    from services.order_service import order_to_dict
+
+    return success([order_to_dict(o, include_user=True) for o in orders])

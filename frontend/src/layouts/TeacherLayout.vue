@@ -32,6 +32,7 @@
       <router-link to="/teacher" :class="{ disabled: !approved }">概览</router-link>
       <router-link to="/teacher/courses" :class="{ disabled: !approved }" @click="blockIfPending">我的课程</router-link>
       <router-link to="/teacher/students" :class="{ disabled: !approved }" @click="blockIfPending">我的学员</router-link>
+      <router-link to="/teacher/orders" :class="{ disabled: !approved }" @click="blockIfPending">收入订单</router-link>
       <router-link to="/teacher/marketing" :class="{ disabled: !approved }" @click="blockIfPending">营销中心</router-link>
       <a href="#" class="logout" @click.prevent="logout">退出</a>
     </aside>

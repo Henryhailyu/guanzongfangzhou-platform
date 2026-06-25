@@ -14,7 +14,7 @@
         </div>
         <el-button v-if="course.enrolled" type="primary" @click="goLearn">进入学习</el-button>
         <el-button v-else-if="isFree" type="primary" :loading="enrolling" @click="enrollFree">免费加入</el-button>
-        <el-button v-else type="primary" :loading="paying" @click="buy">购买课程（模拟支付）</el-button>
+        <el-button v-else type="primary" @click="openCheckout">购买课程</el-button>
         <p v-if="course.enrolled" class="enrolled-tip">已购买 · 进度 {{ course.progress_pct }}%</p>
       </div>
     </div>
@@ -36,6 +36,19 @@
         <span class="action">{{ l.can_watch ? '播放 →' : '🔒' }}</span>
       </div>
     </div>
+
+    <CheckoutDialog
+      :visible="checkoutVisible"
+      product-type="course"
+      :product-id="course.id"
+      :product-title="course.title"
+      :amount="course.price"
+      :points-granted="Math.max(1, Math.floor(course.price / 10))"
+      :referral-code="referralCode"
+      title="购买课程"
+      @close="checkoutVisible = false"
+      @success="onPaid"
+    />
   </div>
 </template>
 
@@ -43,13 +56,17 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '../../stores/auth'
 import request from '../../api/request'
+import CheckoutDialog from '../../components/CheckoutDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const course = ref(null)
-const paying = ref(false)
 const enrolling = ref(false)
+const checkoutVisible = ref(false)
+const referralCode = computed(() => route.query.ref || '')
 
 const isFree = computed(() => course.value?.is_free || course.value?.price === 0)
 
@@ -80,18 +97,18 @@ const enrollFree = async () => {
   }
 }
 
-const buy = async () => {
-  paying.value = true
-  try {
-    const order = await request.post('/orders', { product_type: 'course', product_id: course.value.id })
-    await request.post(`/orders/${order.data.order_id}/mock-pay`)
-    ElMessage.success('购买成功')
-    await load()
-  } catch (e) {
-    ElMessage.error(e.message)
-  } finally {
-    paying.value = false
+const openCheckout = () => {
+  if (!auth.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    return router.push({ path: '/login', query: { redirect: route.fullPath } })
   }
+  checkoutVisible.value = true
+}
+
+const onPaid = async () => {
+  checkoutVisible.value = false
+  ElMessage.success('购买成功')
+  await load()
 }
 
 onMounted(load)

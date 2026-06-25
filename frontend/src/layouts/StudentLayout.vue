@@ -10,6 +10,7 @@
         <router-link to="/wrong-book">错题本</router-link>
         <router-link v-if="auth.isLoggedIn" to="/dashboard">学习中心</router-link>
         <router-link v-if="auth.isLoggedIn" to="/points">积分</router-link>
+        <router-link v-if="auth.isLoggedIn" to="/orders">订单</router-link>
         <router-link v-if="!auth.isLoggedIn" to="/login">登录</router-link>
         <a v-else href="#" @click.prevent="logout">退出</a>
       </nav>
