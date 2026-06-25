@@ -14,7 +14,11 @@
             <span v-for="tag in (t.tags || defaultTags)" :key="tag">{{ tag }}</span>
           </div>
           <div class="actions">
-            <router-link v-if="t.id" :to="`/courses/${t.id}`" class="btn-outline">免费试看</router-link>
+            <router-link
+              v-if="t.teacher_slug"
+              :to="`/teachers/${t.teacher_slug}`"
+              class="btn-outline"
+            >教师主页</router-link>
             <router-link v-if="t.id" :to="`/courses/${t.id}`" class="btn-solid">查看课程</router-link>
             <router-link v-else to="/courses" class="btn-solid">查看课程</router-link>
           </div>

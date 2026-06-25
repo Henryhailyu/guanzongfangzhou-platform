@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { captureReferral } from '../utils/referral'
+import request from '../api/request'
 import { useAuthStore } from '../stores/auth'
 import studentRoutes from './student.routes'
 import teacherRoutes from './teacher.routes'
@@ -25,6 +27,11 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
+  if (to.query.ref) {
+    captureReferral(String(to.query.ref))
+    request.get(`/referral/resolve/${to.query.ref}`).catch(() => {})
+  }
+
   const auth = useAuthStore()
 
   if (auth.token && !auth.user?.teacher_profile && auth.role === 'teacher') {

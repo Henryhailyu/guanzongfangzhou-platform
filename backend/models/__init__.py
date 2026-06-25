@@ -131,6 +131,7 @@ class Course(db.Model):
     lessons = db.relationship("Lesson", backref="course", lazy="dynamic")
 
     def to_dict(self):
+        config = TeacherMarketingConfig.query.filter_by(teacher_id=self.teacher_id).first()
         return {
             "id": self.id,
             "title": self.title,
@@ -139,6 +140,7 @@ class Course(db.Model):
             "cover_url": self.cover_url,
             "teacher_id": self.teacher_id,
             "teacher_name": self.teacher.nickname if self.teacher else None,
+            "teacher_slug": config.slug if config else None,
             "price": float(self.price or 0),
             "original_price": float(self.original_price) if self.original_price else None,
             "is_free": self.is_free,

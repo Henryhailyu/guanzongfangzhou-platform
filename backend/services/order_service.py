@@ -32,13 +32,15 @@ PAYMENT_LABELS = {
 }
 
 
-def resolve_referral(referral_code=None, referral_link_id=None):
+def resolve_referral(referral_code=None, referral_link_id=None, buyer_id=None):
     link = None
     if referral_link_id:
         link = ReferralLink.query.get(referral_link_id)
     elif referral_code:
         link = ReferralLink.query.filter_by(code=referral_code).first()
     if not link:
+        return None, None
+    if buyer_id and link.referrer_id == buyer_id:
         return None, None
     return link.referrer_id, link.id
 
@@ -142,5 +144,9 @@ def complete_payment(order, payment_method=None):
     order.status = "paid"
     order.paid_at = datetime.utcnow()
     fulfill_order(order)
+    if order.referral_link_id:
+        link = ReferralLink.query.get(order.referral_link_id)
+        if link:
+            link.convert_count = (link.convert_count or 0) + 1
     db.session.commit()
     return order

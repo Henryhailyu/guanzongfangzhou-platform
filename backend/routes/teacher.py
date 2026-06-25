@@ -224,22 +224,70 @@ def teacher_orders(user, profile):
 def get_marketing(user, profile):
     config = TeacherMarketingConfig.query.filter_by(teacher_id=user.id).first()
     links = ReferralLink.query.filter_by(teacher_id=user.id, referrer_id=user.id).all()
+    courses = Course.query.filter_by(teacher_id=user.id, status="published").all()
+
+    def link_path(link):
+        if link.course_id:
+            return f"/courses/{link.course_id}?ref={link.code}"
+        if config:
+            return f"/teachers/{config.slug}?ref={link.code}"
+        return f"?ref={link.code}"
+
+    link_items = [
+        {
+            "id": l.id,
+            "code": l.code,
+            "course_id": l.course_id,
+            "course_title": next((c.title for c in courses if c.id == l.course_id), "全店主页"),
+            "click_count": l.click_count or 0,
+            "convert_count": l.convert_count or 0,
+            "url": link_path(l),
+            "channel": l.channel,
+            "created_at": l.created_at.isoformat() if l.created_at else None,
+        }
+        for l in links
+    ]
+
     return success(
         {
             "slug": config.slug if config else None,
             "homepage_url": f"/teachers/{config.slug}" if config else None,
-            "links": [
-                {
-                    "id": l.id,
-                    "code": l.code,
-                    "course_id": l.course_id,
-                    "click_count": l.click_count,
-                    "url": f"/courses/{l.course_id}?ref={l.code}" if l.course_id else f"/teachers/{config.slug}?ref={l.code}",
-                }
-                for l in links
-            ],
+            "stats": {
+                "total_clicks": sum(l.click_count or 0 for l in links),
+                "total_conversions": sum(l.convert_count or 0 for l in links),
+                "link_count": len(links),
+            },
+            "courses": [{"id": c.id, "title": c.title} for c in courses],
+            "links": link_items,
         }
     )
+
+
+@teacher_bp.put("/marketing")
+@approved_teacher_required
+def update_marketing(user, profile):
+    import re
+
+    config = TeacherMarketingConfig.query.filter_by(teacher_id=user.id).first()
+    if not config:
+        return error("NOT_FOUND", "营销配置不存在", 404)
+
+    data = request.get_json() or {}
+    slug = data.get("slug")
+    if slug is not None:
+        slug = slug.strip().lower()
+        if not re.match(r"^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$", slug):
+            return error("INVALID_INPUT", "主页地址仅支持小写字母、数字和连字符", 400)
+        taken = TeacherMarketingConfig.query.filter(
+            TeacherMarketingConfig.slug == slug,
+            TeacherMarketingConfig.teacher_id != user.id,
+        ).first()
+        if taken:
+            return error("SLUG_EXISTS", "该主页地址已被占用", 400)
+        config.slug = slug
+
+    db.session.commit()
+    return success({"slug": config.slug, "homepage_url": f"/teachers/{config.slug}"})
 
 
 @teacher_bp.post("/marketing/links")
@@ -247,6 +295,7 @@ def get_marketing(user, profile):
 def create_link(user, profile):
     data = request.get_json() or {}
     course_id = data.get("course_id")
+    config = TeacherMarketingConfig.query.filter_by(teacher_id=user.id).first()
     if course_id:
         course = Course.query.filter_by(id=course_id, teacher_id=user.id).first()
         if not course:
@@ -262,4 +311,13 @@ def create_link(user, profile):
     )
     db.session.add(link)
     db.session.commit()
-    return success({"code": code, "id": link.id}, "推广链接已生成")
+
+    path = (
+        f"/courses/{course_id}?ref={code}"
+        if course_id
+        else f"/teachers/{config.slug}?ref={code}" if config else f"?ref={code}"
+    )
+    return success(
+        {"code": code, "id": link.id, "url": path},
+        "推广链接已生成",
+    )

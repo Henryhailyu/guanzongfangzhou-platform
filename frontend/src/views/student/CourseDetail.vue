@@ -58,6 +58,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../../stores/auth'
 import request from '../../api/request'
+import { getReferralCode } from '../../utils/referral'
 import CheckoutDialog from '../../components/CheckoutDialog.vue'
 
 const route = useRoute()
@@ -66,7 +67,7 @@ const auth = useAuthStore()
 const course = ref(null)
 const enrolling = ref(false)
 const checkoutVisible = ref(false)
-const referralCode = computed(() => route.query.ref || '')
+const referralCode = computed(() => route.query.ref || getReferralCode())
 
 const isFree = computed(() => course.value?.is_free || course.value?.price === 0)
 

@@ -5,7 +5,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from extensions import db
-from models import Course, CourseEnrollment, Order, ReferralLink, TeacherMarketingConfig, User
+from models import Course, CourseEnrollment, Order, ReferralLink, TeacherMarketingConfig, TeacherProfile, User
 from services.order_service import (
     POINTS_PACKS,
     complete_payment,
@@ -20,12 +20,25 @@ orders_bp = Blueprint("orders", __name__, url_prefix="/api/orders")
 webhooks_bp = Blueprint("webhooks", __name__, url_prefix="/api/webhooks")
 
 
+SUBJECT_LABELS = {
+    "math": "数学",
+    "logic": "逻辑",
+    "writing": "写作",
+    "english": "英语二",
+    "combo": "综合",
+}
+
+
 @marketing_bp.get("/teachers/<slug>")
 def teacher_public_page(slug):
     config = TeacherMarketingConfig.query.filter_by(slug=slug).first()
     if not config:
         return error("NOT_FOUND", "教师不存在", 404)
     teacher = User.query.get(config.teacher_id)
+    profile = TeacherProfile.query.filter_by(user_id=config.teacher_id).first()
+    if not teacher or not profile or profile.status != "approved":
+        return error("NOT_FOUND", "教师不存在", 404)
+
     courses = Course.query.filter_by(
         teacher_id=config.teacher_id, status="published"
     ).all()
@@ -34,7 +47,14 @@ def teacher_public_page(slug):
             "teacher": {
                 "id": teacher.id,
                 "nickname": teacher.nickname,
+                "real_name": profile.real_name,
+                "bio": profile.bio,
+                "expertise": profile.expertise,
                 "slug": config.slug,
+            },
+            "stats": {
+                "course_count": len(courses),
+                "student_count": sum(c.student_count or 0 for c in courses),
             },
             "courses": [c.to_dict() for c in courses],
         }
@@ -124,7 +144,9 @@ def create_order():
         if pending:
             return success(order_to_dict(pending), "已有待支付订单")
 
-    referrer_id, link_id = resolve_referral(referral_code, referral_link_id)
+    referrer_id, link_id = resolve_referral(
+        referral_code, referral_link_id, buyer_id=user.id
+    )
 
     order = Order(
         order_no=uuid.uuid4().hex,
